@@ -1,0 +1,3 @@
+interface:
+  display_name: "课件逐页精讲"
+  short_description: "逐页讲解 PPT、PDF 或 HTML 课件，持续更新一份 Markdown"
