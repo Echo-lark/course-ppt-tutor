@@ -60,6 +60,22 @@ python "$SKILL_DIR/scripts/course_notes.py" audit --progress ./lecture-progress.
 
 `upsert` defaults to `inspected`; use `--state taught` only after reviewing the page against the source. Replacing a section requires `--replace` after merging any learner edits. For HTML previews, repeat `--source` for the entry HTML and relevant data files, and pass an ordered JSON array of page IDs with `--ids-json`. Slide PDFs use the same notes tool without the PPTX inventory step. If Python is unavailable, the skill retains the same one-document and page-ledger requirements manually.
 
+For several consecutive pages, put drafts in one temporary JSON array and call `upsert-batch` once. Each object needs `page` and `content`; optional fields are `state` (default `inspected`), `subject`, and `replace` (default `false`). The whole batch is validated before either output file changes. Example:
+
+```json
+[
+  {"page": 3, "content": "Full explanation of page three...", "state": "taught"},
+  {"page": 4, "content": "Full explanation of page four...", "state": "taught"}
+]
+```
+
+```bash
+python "$SKILL_DIR/scripts/course_notes.py" upsert-batch --progress ./lecture-progress.json --input ./batch-draft.json
+python "$SKILL_DIR/scripts/course_notes.py" audit --progress ./lecture-progress.json
+```
+
+Keep a brief mental list of each page's meaningful claims, formulas, visuals, and questions while writing, then compare it with the finished page before marking it taught. For a longer batch, recheck the last knowledge page and the most demanding formula, visual, or question page; these can be the same page. Skip the extra pass for a short batch just checked page by page. Expand the review only when it reveals a specific problem.
+
 ## Contribute and license
 
 Run `python -m unittest discover -s tests -v` before submitting changes. See [CONTRIBUTING.md](CONTRIBUTING.md). Licensed under [MIT](LICENSE).

@@ -61,6 +61,22 @@ python "$skillDir\scripts\course_notes.py" audit --progress .\chapter-progress.j
 
 `upsert` 默认把新段落标为 `inspected`，核对课件后才显式传 `--state taught`。它默认拒绝覆盖已经写过的页。确实要修改时，先读旧段并合并用户的改动，再加 `--replace`。`audit` 检查页数、状态、重复段落、源文件变化，并提示显著偏短的讲解；它不能证明某页已经讲透。若某页确实内容很少、已核对完整，可用 `review --progress <进度文件> --page <页码> --note <核对理由>` 记录判断。HTML 预览可重复传 `--source` 指定 HTML 和数据文件，并通过 `--ids-json` 提供按显示顺序排列的页面 ID 数组。PDF 无需运行 PPTX 盘点脚本，但可使用相同的 Markdown/进度工具。
 
+连续写多页时，可把草稿放进一个临时 JSON 数组，然后只调用一次 `upsert-batch`；写入成功后仍只有同一份正式讲解 Markdown。数组元素包含 `page`、`content`，可选 `state`（默认 `inspected`）、`subject` 和 `replace`（默认 `false`）。先对照原页核查，再标为 `taught`；批次中若有无效页，整批不会写入。
+
+```json
+[
+  {"page": 3, "content": "第三页的完整讲解……", "state": "taught"},
+  {"page": 4, "content": "第四页的完整讲解……", "state": "taught"}
+]
+```
+
+```powershell
+python "$skillDir\scripts\course_notes.py" upsert-batch --progress .\chapter-progress.json --input .\batch-draft.json
+python "$skillDir\scripts\course_notes.py" audit --progress .\chapter-progress.json
+```
+
+每页写作时简记其关键概念、公式、图和题目，对照完成段落核查一次；较长的批次再抽查最后一页知识页及一页内容最复杂的知识页（可为同一页）。刚逐页核查过的短批次无需额外抽查。发现漏讲才扩大复核范围，避免为了检查而重复通读整章。
+
 ## 范围与限制
 
 - PPTX 文本盘点不能代替渲染检查；扫描版 PDF 需要可用的 OCR 或视觉读取能力；HTML 预览需同时检查本地页面数据与实际显示。

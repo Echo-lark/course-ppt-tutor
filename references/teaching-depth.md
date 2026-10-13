@@ -34,7 +34,7 @@ Define unfamiliar notation immediately. For lengthy expressions, use line breaks
 
 ## Source-to-explanation review
 
-Before marking each page `taught`, compare its rendered slide and page inventory with the written section:
+Before marking each page `taught`, compare its rendered slide and page inventory with the written section. A few short source-element labels in your working notes are enough; do not copy the whole slide into another checklist:
 
 - Every meaningful definition, assertion, formula, derivation step, diagram, table, question, example, and exception is addressed or explicitly flagged unreadable.
 - The explanation adds the missing “why/how” rather than only paraphrasing the slide.
@@ -42,4 +42,4 @@ Before marking each page `taught`, compare its rendered slide and page inventory
 - Claims, supplementary background, corrections, and invented practice examples are distinguishable.
 - Cross-page references and the next page are accurate.
 
-Repeat this check for late pages with the same care. A character-count warning from `course_notes.py` is only a reason to review, not a substitute for this comparison. If a short page is genuinely complete, record the reason in the progress file.
+Repeat this check for late pages with the same care. For a longer batch, spot-check the last knowledge page and the most demanding formula, visual, or question page against the source. One page can satisfy both checks; skip the extra pass for a short batch just checked page by page. Expand the recheck only when it finds a concrete omission or shallow explanation. A character-count warning from `course_notes.py` is only a reason to review, not a substitute for this comparison. If a short page is genuinely complete, record the reason in the progress file.

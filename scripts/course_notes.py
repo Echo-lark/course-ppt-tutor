@@ -137,43 +137,90 @@ def init(args: argparse.Namespace) -> None:
 
 def upsert(args: argparse.Namespace) -> None:
     ledger, notes, body = load(args.progress)
-    page = page_record(ledger, args.page)
-    if page["status"] == "accounted":
-        raise ValueError("This page is accounted as non-content; change its status first")
-    content = args.input.read_text(encoding="utf-8").strip()
-    if not content:
-        raise ValueError("The page explanation is empty")
-    if "<!-- course-ppt-tutor:" in content:
-        raise ValueError("The page explanation contains a reserved course-ppt-tutor marker")
-    existing = blocks(body)
-    if args.page in existing and not args.replace:
-        raise ValueError("Page already has a section; merge edits and pass --replace explicitly")
-    heading = f"## Page {args.page} · source {page['source_id']}\n\n"
-    section = (
-        f"<!-- course-ppt-tutor:page:{args.page}:start -->\n"
-        f"{heading}{content}\n"
-        f"<!-- course-ppt-tutor:page:{args.page}:end -->\n"
-    )
-    if args.page in existing:
-        pattern = re.compile(
-            rf"<!-- course-ppt-tutor:page:{args.page}:start -->\n.*?"
-            rf"<!-- course-ppt-tutor:page:{args.page}:end -->\n?",
-            re.DOTALL,
-        )
-        body, count = pattern.subn(lambda _: section, body, count=1)
-        if count != 1:
-            raise ValueError("Could not safely replace page section")
-    else:
-        later = sorted(n for n in existing if n > args.page)
-        anchor = f"<!-- course-ppt-tutor:page:{later[0]}:start -->" if later else PAGES_END
-        body = body.replace(anchor, section + anchor, 1)
+    content = args.input.read_text(encoding="utf-8")
+    body = apply_pages(ledger, body, [{
+        "page": args.page, "content": content, "state": args.state,
+        "subject": args.subject, "replace": args.replace,
+    }])
     atomic_write(notes, body)
-    page["status"] = args.state
-    page["subject"] = args.subject or page["subject"]
-    page["reason"] = ""
-    page["review_note"] = ""
     save_ledger(args.progress, ledger)
     print(f"Saved page {args.page} as {args.state}: {notes}")
+
+
+def apply_pages(ledger: dict, body: str, entries: list[dict]) -> str:
+    """Validate the whole batch before changing the Markdown or ledger."""
+    if not entries:
+        raise ValueError("The batch has no pages")
+    existing = blocks(body)
+    seen = set()
+    prepared = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise ValueError("Every batch item must be an object")
+        number = entry.get("page")
+        if type(number) is not int:
+            raise ValueError("Every batch item needs an integer page")
+        page = page_record(ledger, number)
+        if number in seen:
+            raise ValueError(f"Duplicate page {number} in batch")
+        seen.add(number)
+        if page["status"] == "accounted":
+            raise ValueError(f"Page {number} is accounted as non-content; change its status first")
+        state = entry.get("state", "inspected")
+        if not isinstance(state, str) or state not in {"inspected", "taught"}:
+            raise ValueError(f"Page {number} state must be inspected or taught")
+        content = entry.get("content")
+        if not isinstance(content, str) or not content.strip():
+            raise ValueError(f"Page {number} explanation is empty")
+        if "<!-- course-ppt-tutor:" in content:
+            raise ValueError(f"Page {number} explanation contains a reserved marker")
+        replace = entry.get("replace", False)
+        if type(replace) is not bool:
+            raise ValueError(f"Page {number} replace must be true or false")
+        if number in existing and not replace:
+            raise ValueError(f"Page {number} already has a section; merge edits and set replace true")
+        subject = entry.get("subject")
+        if subject is not None and not isinstance(subject, str):
+            raise ValueError(f"Page {number} subject must be text")
+        prepared.append((number, page, content.strip(), state, subject, replace))
+
+    for number, page, content, state, subject, replace in sorted(prepared):
+        heading = f"## Page {number} · source {page['source_id']}\n\n"
+        section = (
+            f"<!-- course-ppt-tutor:page:{number}:start -->\n"
+            f"{heading}{content}\n"
+            f"<!-- course-ppt-tutor:page:{number}:end -->\n"
+        )
+        if number in existing:
+            pattern = re.compile(
+                rf"<!-- course-ppt-tutor:page:{number}:start -->\n.*?"
+                rf"<!-- course-ppt-tutor:page:{number}:end -->\n?",
+                re.DOTALL,
+            )
+            body, count = pattern.subn(lambda _: section, body, count=1)
+            if count != 1:
+                raise ValueError(f"Could not safely replace page {number}")
+        else:
+            later = sorted(n for n in existing if n > number)
+            anchor = f"<!-- course-ppt-tutor:page:{later[0]}:start -->" if later else PAGES_END
+            body = body.replace(anchor, section + anchor, 1)
+        existing = blocks(body)
+        page["status"] = state
+        page["subject"] = subject or page["subject"]
+        page["reason"] = ""
+        page["review_note"] = ""
+    return body
+
+
+def upsert_batch(args: argparse.Namespace) -> None:
+    ledger, notes, body = load(args.progress)
+    entries = json.loads(args.input.read_text(encoding="utf-8"))
+    if not isinstance(entries, list):
+        raise ValueError("Batch input must be a JSON array of page objects")
+    body = apply_pages(ledger, body, entries)
+    atomic_write(notes, body)
+    save_ledger(args.progress, ledger)
+    print(f"Saved {len(entries)} pages: {notes}")
 
 
 def set_status(args: argparse.Namespace) -> None:
@@ -265,6 +312,10 @@ def main() -> int:
     p.add_argument("--subject")
     p.add_argument("--replace", action="store_true")
     p.set_defaults(func=upsert)
+    p = sub.add_parser("upsert-batch", help="Insert or explicitly replace several pages at once")
+    p.add_argument("--progress", required=True, type=Path)
+    p.add_argument("--input", required=True, type=Path, help="UTF-8 JSON array with page, content, state, subject, replace")
+    p.set_defaults(func=upsert_batch)
     p = sub.add_parser("status", help="Record a non-teaching page or reading limit")
     p.add_argument("--progress", required=True, type=Path)
     p.add_argument("--page", required=True, type=int)

@@ -105,6 +105,29 @@ class CourseNotesTest(unittest.TestCase):
         report = json.loads(self.run_cli("audit", "--progress", self.progress).stdout)
         self.assertFalse(report["warnings"])
 
+    def test_batch_saves_in_page_order_and_rejects_invalid_batch_without_changes(self) -> None:
+        self.initialize()
+        batch = self.root / "batch.json"
+        batch.write_text(json.dumps([
+            {"page": 3, "content": "Last page explanation.", "state": "taught"},
+            {"page": 1, "content": "First page explanation.", "state": "taught"},
+        ]), encoding="utf-8")
+        self.run_cli("upsert-batch", "--progress", self.progress, "--input", batch)
+        text = self.notes.read_text(encoding="utf-8")
+        self.assertLess(text.index("page:1:start"), text.index("page:3:start"))
+        ledger = json.loads(self.progress.read_text(encoding="utf-8"))
+        self.assertEqual(ledger["next_page"], 2)
+
+        before_notes = self.notes.read_bytes()
+        before_progress = self.progress.read_bytes()
+        batch.write_text(json.dumps([
+            {"page": 1, "content": "Would replace", "state": "taught", "replace": True},
+            {"page": 2, "content": "", "state": "taught"},
+        ]), encoding="utf-8")
+        self.run_cli("upsert-batch", "--progress", self.progress, "--input", batch, ok=False)
+        self.assertEqual(self.notes.read_bytes(), before_notes)
+        self.assertEqual(self.progress.read_bytes(), before_progress)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Add a compact source-to-explanation check and a targeted batch-end review for late pages and demanding visuals or derivations.
+- Add `upsert-batch` to save several page explanations in one validated operation while keeping one canonical Markdown.
+
 ## v1.0.0 — 2026-10-14
 
 - First public release of the page-by-page courseware tutor.
