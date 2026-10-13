@@ -1,5 +1,7 @@
 # course-ppt-tutor
 
+[![Tests](https://github.com/Echo-lark/course-ppt-tutor/actions/workflows/tests.yml/badge.svg)](https://github.com/Echo-lark/course-ppt-tutor/actions/workflows/tests.yml)
+
 [English](README_EN.md) | 中文
 
 给上传的 PPT、PPTX、课件 PDF 或本地 HTML 动态预览做**零基础、逐页、完整讲解**。默认先补前置知识，再解释课件里的概念、公式推导、图表、例题与易错点；讲解持续写入同一份 Markdown。封面和纯行政页会记账，但不占用知识页的讲解篇幅。
@@ -46,14 +48,15 @@ git clone https://github.com/Echo-lark/course-ppt-tutor.git "$HOME/.codex/skills
 
 讲解默认写入一份持续更新的 Markdown；进度保存在旁边的 JSON。实际文件位置由用户指定或由当前任务选择，不会自动提交到这个仓库。
 
-如果需手动运行辅助脚本，下面以 PowerShell 为例。请把示例路径换成自己的实际路径：
+如果需手动运行辅助脚本，先切换到**自己的课程资料目录**，不要在 skill 仓库里存放课件或讲解。下面以 PowerShell 为例：
 
 ```powershell
-python scripts/pptx_inventory.py .\chapter.pptx --output .\chapter-inventory.json
-python scripts/course_notes.py init --source .\chapter.pptx --pages 20 --markdown .\chapter-notes.md --progress .\chapter-progress.json --title "第 1 章讲解"
-python scripts/course_notes.py upsert --progress .\chapter-progress.json --page 1 --input .\page-1-draft.md --state taught
-python scripts/course_notes.py status --progress .\chapter-progress.json --page 2 --state accounted --reason "封面，无知识内容"
-python scripts/course_notes.py audit --progress .\chapter-progress.json
+$skillDir = Join-Path $HOME '.codex\skills\course-ppt-tutor'
+python "$skillDir\scripts\pptx_inventory.py" .\chapter.pptx --output .\chapter-inventory.json
+python "$skillDir\scripts\course_notes.py" init --source .\chapter.pptx --pages 20 --markdown .\chapter-notes.md --progress .\chapter-progress.json --title "第 1 章讲解"
+python "$skillDir\scripts\course_notes.py" upsert --progress .\chapter-progress.json --page 1 --input .\page-1-draft.md --state taught
+python "$skillDir\scripts\course_notes.py" status --progress .\chapter-progress.json --page 2 --state accounted --reason "封面，无知识内容"
+python "$skillDir\scripts\course_notes.py" audit --progress .\chapter-progress.json
 ```
 
 `upsert` 默认把新段落标为 `inspected`，核对课件后才显式传 `--state taught`。它默认拒绝覆盖已经写过的页。确实要修改时，先读旧段并合并用户的改动，再加 `--replace`。`audit` 检查页数、状态、重复段落、源文件变化，并提示显著偏短的讲解；它不能证明某页已经讲透。若某页确实内容很少、已核对完整，可用 `review --progress <进度文件> --page <页码> --note <核对理由>` 记录判断。HTML 预览可重复传 `--source` 指定 HTML 和数据文件，并通过 `--ids-json` 提供按显示顺序排列的页面 ID 数组。PDF 无需运行 PPTX 盘点脚本，但可使用相同的 Markdown/进度工具。

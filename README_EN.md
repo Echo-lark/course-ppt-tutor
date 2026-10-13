@@ -1,5 +1,7 @@
 # course-ppt-tutor
 
+[![Tests](https://github.com/Echo-lark/course-ppt-tutor/actions/workflows/tests.yml/badge.svg)](https://github.com/Echo-lark/course-ppt-tutor/actions/workflows/tests.yml)
+
 English | [中文](README.md)
 
 A Codex skill that turns lecture slides into a **complete, beginner-friendly, page-by-page lesson**. It explains prerequisites, diagrams, notation, derivations, worked examples, and common misconceptions. All teaching for a deck goes into **one continuously updated Markdown file**, with a page ledger so a long course can be resumed without silently skipping or shortening its later pages.
@@ -45,14 +47,15 @@ The scripts are aids. Extracted text cannot replace viewing a slide, and an audi
 
 ## Optional helper commands
 
-Run from the skill directory, replacing the paths with your own:
+Run from **your course-material directory**, keeping the source and generated notes outside the skill repository. Bash example:
 
 ```bash
-python scripts/pptx_inventory.py ./lecture.pptx --output ./lecture-inventory.json
-python scripts/course_notes.py init --source ./lecture.pptx --pages 20 --markdown ./lecture-notes.md --progress ./lecture-progress.json
-python scripts/course_notes.py upsert --progress ./lecture-progress.json --page 1 --input ./page-1-draft.md --state taught
-python scripts/course_notes.py status --progress ./lecture-progress.json --page 2 --state accounted --reason "cover page"
-python scripts/course_notes.py audit --progress ./lecture-progress.json
+SKILL_DIR="$HOME/.codex/skills/course-ppt-tutor"
+python "$SKILL_DIR/scripts/pptx_inventory.py" ./lecture.pptx --output ./lecture-inventory.json
+python "$SKILL_DIR/scripts/course_notes.py" init --source ./lecture.pptx --pages 20 --markdown ./lecture-notes.md --progress ./lecture-progress.json
+python "$SKILL_DIR/scripts/course_notes.py" upsert --progress ./lecture-progress.json --page 1 --input ./page-1-draft.md --state taught
+python "$SKILL_DIR/scripts/course_notes.py" status --progress ./lecture-progress.json --page 2 --state accounted --reason "cover page"
+python "$SKILL_DIR/scripts/course_notes.py" audit --progress ./lecture-progress.json
 ```
 
 `upsert` defaults to `inspected`; use `--state taught` only after reviewing the page against the source. Replacing a section requires `--replace` after merging any learner edits. For HTML previews, repeat `--source` for the entry HTML and relevant data files, and pass an ordered JSON array of page IDs with `--ids-json`. Slide PDFs use the same notes tool without the PPTX inventory step. If Python is unavailable, the skill retains the same one-document and page-ledger requirements manually.
