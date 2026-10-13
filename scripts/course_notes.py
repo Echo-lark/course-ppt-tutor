@@ -116,7 +116,12 @@ def init(args: argparse.Namespace) -> None:
         "markdown": str(args.markdown.resolve()),
         "sources": sources,
         "learner_level": "beginner",
-        "accepted_preferences": [],
+        "accepted_preferences": [
+            "Explain every substantive page from zero prior course knowledge.",
+            "Show intermediate derivation steps and why each step is valid.",
+            "Use plain text/Unicode math readable on a tablet unless changed by the learner.",
+            "Keep one continuously updated Markdown for this courseware set.",
+        ],
         "unresolved_items": [],
         "pages": [
             {"number": i, "source_id": str(ids[i - 1]), "status": "unseen", "subject": "", "reason": "", "review_note": ""}
