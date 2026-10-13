@@ -1,6 +1,6 @@
 # Detailed teaching standard
 
-Use this when writing or reviewing substantive courseware pages. The learner's preferred result resembles a patient one-to-one lesson, not an expanded list of slide bullets. The supplied sample is a **style and depth reference**, not an authority for physics facts or permission to copy its text, images, links, or mathematical errors. Verify claims against the actual courseware and sound reasoning.
+Use this when writing or reviewing substantive courseware pages. The target result resembles a patient one-to-one lesson, not an expanded list of slide bullets. If a learner provides a sample explanation, treat it as a **style and depth reference**, not an authority for subject facts or permission to copy its text, images, links, or errors. Verify claims against the actual courseware and sound reasoning.
 
 ## What a taught page should do
 
@@ -21,7 +21,7 @@ Keep page-specific sections and source locators even when one proof spans severa
 
 ## Formula display for phone or tablet
 
-This learner has reported LaTeX rendering problems on a tablet, so make the Markdown understandable in an ordinary viewer without math rendering by default. Use plain text and Unicode symbols when legible, with short equations on separate lines and a sentence before or after each important step. Example:
+Make the Markdown understandable in an ordinary viewer without math rendering by default, including on phones and tablets. Use plain text and Unicode symbols when legible, with short equations on separate lines and a sentence before or after each important step. Example:
 
 ```text
 F⃗ = qE⃗

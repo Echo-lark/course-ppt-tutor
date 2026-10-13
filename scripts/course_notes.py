@@ -119,7 +119,7 @@ def init(args: argparse.Namespace) -> None:
         "accepted_preferences": [
             "Explain every substantive page from zero prior course knowledge.",
             "Show intermediate derivation steps and why each step is valid.",
-            "Use plain text/Unicode math readable on a tablet unless changed by the learner.",
+            "Use plain text/Unicode math readable without LaTeX rendering unless changed by the learner.",
             "Keep one continuously updated Markdown for this courseware set.",
         ],
         "unresolved_items": [],
